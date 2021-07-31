@@ -3,7 +3,13 @@ project(vui-framework)
 
 # Define shared library (only .cpp)
 add_library(${PROJECT_NAME} STATIC 
-  src/application.cpp)
+  src/application.cpp
+  src/graphics.cpp
+  src/keyboard.cpp
+  src/mouse.cpp
+  src/timer.cpp
+  src/window.cpp
+  )
 
 # Create nice looking alias for clients of bge to link to 
 add_library(vui::vui ALIAS ${PROJECT_NAME})
