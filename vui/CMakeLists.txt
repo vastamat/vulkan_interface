@@ -39,9 +39,15 @@ find_package(Vulkan REQUIRED)
 find_package(glfw3 3.3 REQUIRED)
 
 if (WIN32)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC VUI_PLATFORM_WINDOWS=1)
     target_compile_definitions(${PROJECT_NAME} PRIVATE VK_USE_PLATFORM_WIN32_KHR)
 else()
-   target_compile_definitions(${PROJECT_NAME} PRIVATE DVK_USE_PLATFORM_XLIB_KHR)
+    target_compile_definitions(${PROJECT_NAME} PUBLIC VUI_PLATFORM_UNIX=1)
+    target_compile_definitions(${PROJECT_NAME} PRIVATE DVK_USE_PLATFORM_XLIB_KHR)
+endif()
+
+if (CMAKE_BUILD_TYPE STREQUAL "Debug")
+  target_compile_definitions(${PROJECT_NAME} PUBLIC VUI_DEBUG=1)
 endif()
 
 # Link libraries
