@@ -2,6 +2,7 @@
 
 #include "graphics.h"
 #include "window.h"
+#include "vulkan_renderer.h"
 #include "timer.h"
 
 #include <thread>
@@ -12,6 +13,13 @@ constexpr int c_MillisPerSecond = 1000;
 constexpr float c_DesiredRenderFPS = 60.0f;
 constexpr float c_DesiredRenderFrameMS = c_MillisPerSecond / c_DesiredRenderFPS;
 
+vui::Application::Application()
+{
+    m_Graphics = std::make_shared<Graphics>();
+    m_MainWindow = std::make_shared<Window>("Vulkan Sandbox", 1280, 720);
+    m_Renderer = std::make_shared<VulkanRenderer>(*m_MainWindow);
+}
+
 void vui::Application::Run()
 {
     Timer updateTimer;
@@ -20,10 +28,12 @@ void vui::Application::Run()
 
     while (!ShouldQuit)
     {
-        float delta = updateTimer.GetElapsedMilli();
+        // float delta = updateTimer.GetElapsedMilli();
         updateTimer.Renew();
 
         ShouldQuit = Update(/*delta*/);
+
+        Render();
 
         float elapsed = updateTimer.GetElapsedMilli();
         if (elapsed < c_DesiredRenderFrameMS)
@@ -32,12 +42,6 @@ void vui::Application::Run()
                 c_DesiredRenderFrameMS - elapsed));
         }
     }
-}
-
-vui::Application::Application()
-{
-    m_Gfx = std::make_shared<Graphics>();
-    m_MainWindow = std::make_shared<Window>("Vulkan Sandbox", 1280, 720);
 }
 
 bool vui::Application::Update()
@@ -55,4 +59,9 @@ bool vui::Application::Update()
     //     printf("Holding down Tab \n");
     // }
     return m_MainWindow->ProcessInput();
+}
+
+void vui::Application::Render()
+{
+
 }

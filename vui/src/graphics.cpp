@@ -1,80 +1,53 @@
 #include "graphics.h"
 
-#define GLFW_INCLUDE_VULKAN
 #include <GLFW/glfw3.h>
 
-#include <algorithm>
 #include <assert.h>
-#include <vector>
 #include <iostream>
-#include <cstring>
+#include <string>
 
-static vui::Graphics *s_GraphicsInstance = nullptr;
+static std::string IntepretGLFWerrorcode(int code)
+{
+    switch (code)
+    {
+    case GLFW_NOT_INITIALIZED:
+        return "GLFW has not been initialized";
+    case GLFW_NO_CURRENT_CONTEXT:
+        return "No context is current for this thread";
+    case GLFW_INVALID_ENUM:
+        return "One of the arguments to the function was an invalid enum value";
+    case GLFW_INVALID_VALUE:
+        return "One of the arguments to the function was an invalid value";
+    case GLFW_OUT_OF_MEMORY:
+        return "A memory allocation failed";
+    case GLFW_API_UNAVAILABLE:
+        return "GLFW could not find support for the requested client API on the "
+               "system";
+    case GLFW_VERSION_UNAVAILABLE:
+        return "The requested OpenGL or OpenGL ES version is not available";
+    case GLFW_PLATFORM_ERROR:
+        return "A platform - specific error occurred that does not match any of "
+               "the more specific categories";
+    case GLFW_FORMAT_UNAVAILABLE:
+        return "The requested format is not supported or available";
+    default:
+        return std::string("Unknown error code: ") + std::to_string(code);
+    }
+}
+
+static void glfwErrorCallback(int code, const char *description)
+{
+    std::cerr << "GLFW Error: { " << IntepretGLFWerrorcode(code) << " } : " << description << std::endl;
+}
 
 vui::Graphics::Graphics()
 {
-    assert(s_GraphicsInstance == nullptr);
-    s_GraphicsInstance = this;
-
     bool success = glfwInit();
     assert(success);
-
-    VkApplicationInfo appInfo{};
-    appInfo.sType = VK_STRUCTURE_TYPE_APPLICATION_INFO;
-    appInfo.pApplicationName = "Vulkan App";
-    appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.pEngineName = "No Engine";
-    appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-    appInfo.apiVersion = VK_API_VERSION_1_0;
-
-    VkInstanceCreateInfo createInfo{};
-    createInfo.sType = VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO;
-    createInfo.pApplicationInfo = &appInfo;
-
-    uint32_t glfwExtensionCount = 0;
-    const char **glfwExtensions;
-
-    glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
-
-    createInfo.enabledExtensionCount = glfwExtensionCount;
-    createInfo.ppEnabledExtensionNames = glfwExtensions;
-    createInfo.enabledLayerCount = 0;
-
-    uint32_t extensionCount = 0;
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, nullptr);
-    std::vector<VkExtensionProperties> extensions(extensionCount);
-    vkEnumerateInstanceExtensionProperties(nullptr, &extensionCount, extensions.data());
-
-    for (size_t i = 0; i < glfwExtensionCount; i++)
-    {
-        auto pos = std::find_if(std::begin(extensions), std::end(extensions), [glfwExtension = glfwExtensions[i]](const VkExtensionProperties &vkExtension)
-                                { return strcmp(glfwExtension, vkExtension.extensionName) == 0; });
-
-        if (pos == std::end(extensions))
-        {
-            std::cout << "Required GLFW extension [ " << glfwExtensions[i] << " ] is missing."<< '\n';
-        }
-    }
-
-    std::cout << "available extensions:\n";
-    for (const auto &extension : extensions)
-    {
-        std::cout << '\t' << extension.extensionName << '\n';
-    }
-
-    std::cout << "glfw required extensions:\n";
-    for (size_t i = 0; i < glfwExtensionCount; i++)
-    {
-        std::cout << '\t' << glfwExtensions[i] << '\n';
-    }
-
-    VkResult result = vkCreateInstance(&createInfo, nullptr, &m_VulkanInstance);
-    assert(result == VK_SUCCESS);
+    glfwSetErrorCallback(glfwErrorCallback);
 }
 
 vui::Graphics::~Graphics()
 {
-    vkDestroyInstance(m_VulkanInstance, nullptr);
     glfwTerminate();
-    s_GraphicsInstance = nullptr;
 }

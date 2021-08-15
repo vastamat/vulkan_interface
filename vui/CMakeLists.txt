@@ -8,6 +8,10 @@ add_library(${PROJECT_NAME} STATIC
   src/keyboard.cpp
   src/mouse.cpp
   src/timer.cpp
+  src/vulkan_device.cpp
+  src/vulkan_instance.cpp
+  src/vulkan_renderer.cpp
+  src/vulkan_surface.cpp
   src/window.cpp
   )
 

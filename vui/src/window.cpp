@@ -308,8 +308,12 @@ bool vui::Window::ProcessInput()
     m_Mouse.m_ButtonStatePrevious = m_Mouse.m_ButtonStateCurrent;
 
     glfwPollEvents();
-    glfwSwapBuffers(m_WindowHandle);
     return glfwWindowShouldClose(m_WindowHandle);
+}
+
+void vui::Window::SwapBuffers()
+{
+    glfwSwapBuffers(m_WindowHandle);
 }
 
 void vui::Window::CreateWindowInternal()

@@ -20,6 +20,9 @@ namespace vui
         Window &operator=(Window &&other) noexcept = delete;
 
         bool ProcessInput();
+        void SwapBuffers();
+
+        GLFWwindow *GetWindowHandle() const { return m_WindowHandle; }
 
     private:
         void CreateWindowInternal();

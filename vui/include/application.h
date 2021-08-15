@@ -6,7 +6,8 @@ namespace vui
 {
     class Window;
     class Graphics;
-
+    class VulkanRenderer;
+   
     class Application
     {
     public:
@@ -15,9 +16,11 @@ namespace vui
 
     private:
         bool Update();
+        void Render();
 
     private:
-        std::shared_ptr<Graphics> m_Gfx;
+        std::shared_ptr<Graphics> m_Graphics;
         std::shared_ptr<Window> m_MainWindow;
+        std::shared_ptr<VulkanRenderer> m_Renderer;
     };
 } // namespace vui

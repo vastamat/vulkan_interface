@@ -1,7 +1,5 @@
 #pragma once
 
-#include <vulkan/vulkan.h>
-
 namespace vui
 {
     class Graphics
@@ -17,6 +15,5 @@ namespace vui
         Graphics &operator=(Graphics &&other) noexcept = delete;
 
     private:
-        VkInstance m_VulkanInstance;
     };
 } // namespace vui
