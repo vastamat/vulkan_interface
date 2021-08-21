@@ -1,9 +1,11 @@
 #include "vulkan_device.h"
 
 #include <assert.h>
+#include <algorithm>
 #include <iostream>
 #include <map>
 #include <set>
+#include <cstring>
 
 vui::VulkanDevice::VulkanDevice(const VulkanInstance &vulkanInstance,
                                 const VulkanSurface &surface,
@@ -16,7 +18,7 @@ vui::VulkanDevice::VulkanDevice(const VulkanInstance &vulkanInstance,
       m_QueueFamiliesIndices()
 {
     std::vector<VkPhysicalDevice> physicalGPUs = GetAllPhysicalDevices(vulkanInstance);
-    m_PhysicalGPU = GetBestDeviceCandidate(physicalGPUs, surface);
+    m_PhysicalGPU = GetBestDeviceCandidate(physicalGPUs, surface, requestedExtensions);
     m_QueueFamiliesIndices = FindQueueFamilies(m_PhysicalGPU, surface);
 
     std::vector<VkDeviceQueueCreateInfo> queuesCreateInfo = GetQueuesCreateInfo();
@@ -54,13 +56,15 @@ std::vector<VkPhysicalDevice> vui::VulkanDevice::GetAllPhysicalDevices(const Vul
     return devices;
 }
 
-VkPhysicalDevice vui::VulkanDevice::GetBestDeviceCandidate(const std::vector<VkPhysicalDevice> &physicalGPUs, const VulkanSurface &surface) const
+VkPhysicalDevice vui::VulkanDevice::GetBestDeviceCandidate(const std::vector<VkPhysicalDevice> &physicalGPUs,
+                                                           const VulkanSurface &surface,
+                                                           const std::vector<const char *> &requestedExtensions) const
 {
     std::multimap<int, VkPhysicalDevice> candidates;
 
     for (const auto &device : physicalGPUs)
     {
-        int score = RateDeviceSuitability(device, surface);
+        int score = RateDeviceSuitability(device, surface, requestedExtensions);
         candidates.insert(std::make_pair(score, device));
     }
 
@@ -77,7 +81,9 @@ VkPhysicalDevice vui::VulkanDevice::GetBestDeviceCandidate(const std::vector<VkP
     }
 }
 
-int vui::VulkanDevice::RateDeviceSuitability(VkPhysicalDevice physicalDevice, const VulkanSurface &surface) const
+int vui::VulkanDevice::RateDeviceSuitability(VkPhysicalDevice physicalDevice,
+                                             const VulkanSurface &surface,
+                                             const std::vector<const char *> &requestedExtensions) const
 {
     VkPhysicalDeviceProperties deviceProperties;
     vkGetPhysicalDeviceProperties(physicalDevice, &deviceProperties);
@@ -88,8 +94,10 @@ int vui::VulkanDevice::RateDeviceSuitability(VkPhysicalDevice physicalDevice, co
     // Find the available queue families for this gpu
     QueueFamilyIndices indices = FindQueueFamilies(physicalDevice, surface);
 
+    bool supportsRequiredExtensions = CheckDeviceExtensionsAvailability(physicalDevice, requestedExtensions);
+
     // Application can't function without geometry shaders or missing queue families
-    if (!deviceFeatures.geometryShader || !indices.isComplete())
+    if (!deviceFeatures.geometryShader || !indices.isComplete() || !supportsRequiredExtensions)
     {
         return 0;
     }
@@ -149,6 +157,34 @@ vui::QueueFamilyIndices vui::VulkanDevice::FindQueueFamilies(VkPhysicalDevice ph
     }
 
     return indices;
+}
+
+bool vui::VulkanDevice::CheckDeviceExtensionsAvailability(VkPhysicalDevice physicalDevice, const std::vector<const char *> &requestedExtensions) const
+{
+    uint32_t extensionCount;
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, nullptr);
+
+    std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+    vkEnumerateDeviceExtensionProperties(physicalDevice, nullptr, &extensionCount, availableExtensions.data());
+
+    bool allFound = true;
+
+    for (auto &&requestedExtension : requestedExtensions)
+    {
+        auto pos = std::find_if(std::begin(availableExtensions), std::end(availableExtensions),
+                                [requestedExtension](const VkExtensionProperties &availableExtensionProperty)
+                                {
+                                    return strcmp(requestedExtension, availableExtensionProperty.extensionName);
+                                });
+
+        if (pos == std::end(availableExtensions))
+        {
+            std::cerr << "Unable to find required device extension " << requestedExtension << " \n";
+            allFound = false;
+        }
+    }
+
+    return allFound;
 }
 
 std::vector<VkDeviceQueueCreateInfo> vui::VulkanDevice::GetQueuesCreateInfo() const

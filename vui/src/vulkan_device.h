@@ -35,9 +35,14 @@ namespace vui
 
     private:
         std::vector<VkPhysicalDevice> GetAllPhysicalDevices(const VulkanInstance &vulkankInstance) const;
-        VkPhysicalDevice GetBestDeviceCandidate(const std::vector<VkPhysicalDevice> &physicalGPUs, const VulkanSurface &surface) const;
-        int RateDeviceSuitability(VkPhysicalDevice physicalDevice, const VulkanSurface &surface) const;
+        VkPhysicalDevice GetBestDeviceCandidate(const std::vector<VkPhysicalDevice> &physicalGPUs,
+                                                const VulkanSurface &surface,
+                                                const std::vector<const char *> &requestedExtensions) const;
+        int RateDeviceSuitability(VkPhysicalDevice physicalDevice,
+                                  const VulkanSurface &surface,
+                                  const std::vector<const char *> &requestedExtensions) const;
         QueueFamilyIndices FindQueueFamilies(VkPhysicalDevice physicalDevice, const VulkanSurface &surface) const;
+        bool CheckDeviceExtensionsAvailability(VkPhysicalDevice physicalDevice, const std::vector<const char *> &requestedExtensions) const;
         std::vector<VkDeviceQueueCreateInfo> GetQueuesCreateInfo() const;
         VkPhysicalDeviceFeatures GetDeviceFeatures() const;
         void CreateLogicalDeviceInternal(const std::vector<VkDeviceQueueCreateInfo> &queuesCreateInfo,

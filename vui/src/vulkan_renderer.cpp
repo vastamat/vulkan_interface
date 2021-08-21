@@ -6,7 +6,7 @@
 static const std::vector<const char *> s_ValidationLayers = {
     "VK_LAYER_KHRONOS_validation"};
 
-std::vector<const char *> s_DeviceExtensionNames = {
+static const std::vector<const char *> s_DeviceExtensionNames = {
     VK_KHR_SWAPCHAIN_EXTENSION_NAME};
 
 static std::vector<const char *> GetRequiredInstanceExtensions()
