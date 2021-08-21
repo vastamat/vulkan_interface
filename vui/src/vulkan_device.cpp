@@ -1,5 +1,7 @@
 #include "vulkan_device.h"
 
+#include "vulkan_swapchain.h"
+
 #include <assert.h>
 #include <algorithm>
 #include <iostream>
@@ -96,8 +98,15 @@ int vui::VulkanDevice::RateDeviceSuitability(VkPhysicalDevice physicalDevice,
 
     bool supportsRequiredExtensions = CheckDeviceExtensionsAvailability(physicalDevice, requestedExtensions);
 
-    // Application can't function without geometry shaders or missing queue families
-    if (!deviceFeatures.geometryShader || !indices.isComplete() || !supportsRequiredExtensions)
+    bool swapChainAdequate = false;
+    if (supportsRequiredExtensions)
+    {
+        SwapChainSupportDetails swapChainSupport(physicalDevice, surface.GetSurfaceHandle());
+        swapChainAdequate = !swapChainSupport.formats.empty() && !swapChainSupport.presentModes.empty();
+    }
+    
+    // Application can't function without geometry shaders or missing queue families/extensions/swapchain support
+    if (!deviceFeatures.geometryShader || !indices.isComplete() || !supportsRequiredExtensions || !swapChainAdequate)
     {
         return 0;
     }

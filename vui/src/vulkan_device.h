@@ -33,8 +33,13 @@ namespace vui
         VulkanDevice &operator=(const VulkanDevice &other) = delete;
         VulkanDevice &operator=(VulkanDevice &&other) noexcept = delete;
 
+        VkPhysicalDevice GetPhysicalDeviceHandle() const { return m_PhysicalGPU; }
+        VkDevice GetLogicalDeviceHandle() const { return m_LogicalDevice; }
+        QueueFamilyIndices GetQueueFamilyIndices() const { return m_QueueFamiliesIndices; }
+
     private:
-        std::vector<VkPhysicalDevice> GetAllPhysicalDevices(const VulkanInstance &vulkankInstance) const;
+        std::vector<VkPhysicalDevice>
+        GetAllPhysicalDevices(const VulkanInstance &vulkankInstance) const;
         VkPhysicalDevice GetBestDeviceCandidate(const std::vector<VkPhysicalDevice> &physicalGPUs,
                                                 const VulkanSurface &surface,
                                                 const std::vector<const char *> &requestedExtensions) const;

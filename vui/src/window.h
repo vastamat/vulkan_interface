@@ -10,7 +10,7 @@ namespace vui
     class Window
     {
     public:
-        Window(const char *title, int width, int height);
+        Window(const char *title, int32_t width, int32_t height);
         ~Window();
 
         Window(const Window &other);
@@ -31,10 +31,11 @@ namespace vui
         Keyboard m_Keyboard;
         Mouse m_Mouse;
 
+        std::pair<int32_t, int32_t> m_WindowSize;
+        std::pair<int32_t, int32_t> m_FramebufferSize;
+
     private:
         GLFWwindow *m_WindowHandle;
         const char *m_Title;
-        int m_Width;
-        int m_Height;
     };
 }

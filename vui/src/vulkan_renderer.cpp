@@ -27,6 +27,7 @@ static std::vector<const char *> GetRequiredInstanceExtensions()
 vui::VulkanRenderer::VulkanRenderer(const Window &window)
     : m_VulkanInstance(std::make_unique<VulkanInstance>(s_ValidationLayers, GetRequiredInstanceExtensions())),
       m_Surface(std::make_unique<VulkanSurface>(*m_VulkanInstance, window)),
-      m_VulkanDevice(std::make_unique<VulkanDevice>(*m_VulkanInstance, *m_Surface, s_ValidationLayers, s_DeviceExtensionNames))
+      m_VulkanDevice(std::make_unique<VulkanDevice>(*m_VulkanInstance, *m_Surface, s_ValidationLayers, s_DeviceExtensionNames)),
+      m_SwapChain(std::make_unique<VulkanSwapChain>(*m_VulkanDevice, *m_Surface, window.m_FramebufferSize))
 {
 }

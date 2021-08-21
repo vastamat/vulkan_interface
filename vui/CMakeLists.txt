@@ -12,6 +12,7 @@ add_library(${PROJECT_NAME} STATIC
   src/vulkan_instance.cpp
   src/vulkan_renderer.cpp
   src/vulkan_surface.cpp
+  src/vulkan_swapchain.cpp
   src/window.cpp
   )
 

@@ -260,13 +260,25 @@ static void OnMouseMoveEventCallback(GLFWwindow *window, double xPos, double yPo
     userWindow->m_Mouse.y = yPos;
 }
 
-vui::Window::Window(const char *title, int width, int height)
+static void OnFramebufferResizedCallback(GLFWwindow *window, int width, int height)
+{
+    vui::Window *userWindow = static_cast<vui::Window *>(glfwGetWindowUserPointer(window));
+    userWindow->m_FramebufferSize = {width, height};
+}
+
+static void OnWindowResizedCallback(GLFWwindow *window, int width, int height)
+{
+    vui::Window *userWindow = static_cast<vui::Window *>(glfwGetWindowUserPointer(window));
+    userWindow->m_WindowSize = {width, height};
+}
+
+vui::Window::Window(const char *title, int32_t width, int32_t height)
     : m_Keyboard(),
       m_Mouse(),
+      m_WindowSize(width, height),
+      m_FramebufferSize(0, 0),
       m_WindowHandle(nullptr),
-      m_Title(title),
-      m_Width(width),
-      m_Height(height)
+      m_Title(title)
 {
     CreateWindowInternal();
 }
@@ -282,10 +294,10 @@ vui::Window::~Window()
 vui::Window::Window(const Window &other)
     : m_Keyboard(other.m_Keyboard),
       m_Mouse(other.m_Mouse),
+      m_WindowSize(other.m_WindowSize),
+      m_FramebufferSize(other.m_FramebufferSize),
       m_WindowHandle(nullptr),
-      m_Title(other.m_Title),
-      m_Width(other.m_Width),
-      m_Height(other.m_Height)
+      m_Title(other.m_Title)
 {
     CreateWindowInternal();
 }
@@ -293,10 +305,10 @@ vui::Window::Window(const Window &other)
 vui::Window::Window(Window &&other) noexcept
     : m_Keyboard(std::move(other.m_Keyboard)),
       m_Mouse(std::move(other.m_Mouse)),
+      m_WindowSize(std::move(other.m_WindowSize)),
+      m_FramebufferSize(std::move(other.m_FramebufferSize)),
       m_WindowHandle(other.m_WindowHandle),
-      m_Title(other.m_Title),
-      m_Width(other.m_Width),
-      m_Height(other.m_Height)
+      m_Title(other.m_Title)
 {
     other.m_WindowHandle = nullptr;
     glfwSetWindowUserPointer(m_WindowHandle, this);
@@ -321,10 +333,16 @@ void vui::Window::CreateWindowInternal()
     glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
     glfwWindowHint(GLFW_RESIZABLE, GLFW_FALSE);
 
-    m_WindowHandle = glfwCreateWindow(m_Width, m_Height, m_Title, nullptr, nullptr);
+    auto [width, height] = m_WindowSize;
+    m_WindowHandle = glfwCreateWindow(width, height, m_Title, nullptr, nullptr);
 
     glfwSetWindowUserPointer(m_WindowHandle, this);
     glfwSetKeyCallback(m_WindowHandle, OnKeyEventCallback);
     glfwSetMouseButtonCallback(m_WindowHandle, OnMouseEventCallback);
     glfwSetCursorPosCallback(m_WindowHandle, OnMouseMoveEventCallback);
+    glfwSetFramebufferSizeCallback(m_WindowHandle, OnFramebufferResizedCallback);
+    glfwSetWindowSizeCallback(m_WindowHandle, OnWindowResizedCallback);
+
+    auto &[framebufferWidth, framebufferHeight] = m_FramebufferSize;
+    glfwGetFramebufferSize(m_WindowHandle, &framebufferWidth, &framebufferHeight);
 }
