@@ -49,8 +49,9 @@ vui::VulkanSwapChain::VulkanSwapChain(const VulkanDevice &vulkanDevice,
     m_PresentationMode = ChooseSwapPresentMode(swapChainSupport.presentModes);
     m_SwapExtent = ChooseSwapExtent(swapChainSupport.capabilities, framebufferSize);
 
-    CreateSwapChainInternal(swapChainSupport.capabilities, vulkanDevice, vulkanSurface);
-    CreateSwapChainImages(vulkanDevice);
+    CreateSwapChainInternal(swapChainSupport.capabilities, vulkanSurface);
+    CreateSwapChainImages();
+    CreateSwapChainTextures();
 }
 
 vui::VulkanSwapChain::~VulkanSwapChain()
@@ -104,7 +105,6 @@ VkExtent2D vui::VulkanSwapChain::ChooseSwapExtent(const VkSurfaceCapabilitiesKHR
 }
 
 void vui::VulkanSwapChain::CreateSwapChainInternal(VkSurfaceCapabilitiesKHR capabilities,
-                                                   const VulkanDevice &vulkanDevice,
                                                    const VulkanSurface &vulkanSurface)
 {
     uint32_t imageCount = capabilities.minImageCount + 1;
@@ -124,7 +124,7 @@ void vui::VulkanSwapChain::CreateSwapChainInternal(VkSurfaceCapabilitiesKHR capa
     createInfo.imageArrayLayers = 1;
     createInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 
-    QueueFamilyIndices queueIndices = vulkanDevice.GetQueueFamilyIndices();
+    QueueFamilyIndices queueIndices = m_VulkanDeviceRef.GetQueueFamilyIndices();
     uint32_t queueFamilyIndices[] = {queueIndices.graphicsFamily.value(), queueIndices.presentFamily.value()};
 
     if (queueIndices.graphicsFamily != queueIndices.presentFamily)
@@ -146,14 +146,25 @@ void vui::VulkanSwapChain::CreateSwapChainInternal(VkSurfaceCapabilitiesKHR capa
     createInfo.clipped = VK_TRUE;
     createInfo.oldSwapchain = VK_NULL_HANDLE;
 
-    VkResult result = vkCreateSwapchainKHR(vulkanDevice.GetLogicalDeviceHandle(), &createInfo, nullptr, &m_SwapChain);
+    VkResult result = vkCreateSwapchainKHR(m_VulkanDeviceRef.GetLogicalDeviceHandle(), &createInfo, nullptr, &m_SwapChain);
     assert(result == VK_SUCCESS);
 }
-void vui::VulkanSwapChain::CreateSwapChainImages(const VulkanDevice &vulkanDevice)
+
+void vui::VulkanSwapChain::CreateSwapChainImages()
 {
     uint32_t swapChainImageCount = 0;
 
-    vkGetSwapchainImagesKHR(vulkanDevice.GetLogicalDeviceHandle(), m_SwapChain, &swapChainImageCount, nullptr);
+    vkGetSwapchainImagesKHR(m_VulkanDeviceRef.GetLogicalDeviceHandle(), m_SwapChain, &swapChainImageCount, nullptr);
     m_SwapChainImages.resize(swapChainImageCount);
-    vkGetSwapchainImagesKHR(vulkanDevice.GetLogicalDeviceHandle(), m_SwapChain, &swapChainImageCount, m_SwapChainImages.data());
+    vkGetSwapchainImagesKHR(m_VulkanDeviceRef.GetLogicalDeviceHandle(), m_SwapChain, &swapChainImageCount, m_SwapChainImages.data());
+}
+
+void vui::VulkanSwapChain::CreateSwapChainTextures()
+{
+    m_SwapChainTextures.reserve(m_SwapChainImages.size());
+   
+    for (auto &&swapChainImage : m_SwapChainImages)
+    {
+        m_SwapChainTextures.emplace_back(m_VulkanDeviceRef, swapChainImage, m_Format.format);
+    }
 }

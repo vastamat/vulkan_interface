@@ -20,8 +20,8 @@ namespace vui
         VkSurfaceKHR GetSurfaceHandle() const { return m_Surface; }
 
     private:
-        VkSurfaceKHR m_Surface;
-
         const VulkanInstance &m_VulkanInstanceRef;
+
+        VkSurfaceKHR m_Surface;
     };
 }

@@ -6,8 +6,9 @@
 #include <assert.h>
 
 vui::VulkanSurface::VulkanSurface(const VulkanInstance &vulkanInstance, const Window &window)
-    : m_Surface(VK_NULL_HANDLE),
-      m_VulkanInstanceRef(vulkanInstance)
+    : m_VulkanInstanceRef(vulkanInstance),
+      m_Surface(VK_NULL_HANDLE)
+
 {
     VkResult result = glfwCreateWindowSurface(m_VulkanInstanceRef.GetInstanceHandle(), window.GetWindowHandle(), nullptr, &m_Surface);
     assert(result == VK_SUCCESS);
